@@ -211,13 +211,15 @@ input[type="range"] {
 
 /* TICK ANIMATION */
 
+/* Dark flip effect — no bright flash */
+
 .tick {
-  animation: shock 130ms ease-out;
+  animation: darkFlip 180ms ease-out;
 }
 
-@keyframes shock {
+@keyframes darkFlip {
   0% {
-    filter: brightness(2);
+    filter: brightness(0.15);
     transform: perspective(300px) rotateX(-9deg);
   }
 
@@ -226,6 +228,14 @@ input[type="range"] {
     transform: perspective(300px) rotateX(0deg);
   }
 }
+
+/* Accessibility: disable animation when requested */
+@media (prefers-reduced-motion: reduce) {
+  .tick {
+    animation: none !important;
+  }
+}
+
 
 /* BACK BUTTON */
 
