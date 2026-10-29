@@ -9,13 +9,15 @@
 <style>
 :root {
   color-scheme: dark;
-  font-family: Arial, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   --red: #ff202c;
   --main-size: 150px;
   --fraction-size: 65px;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 html, body {
   margin: 0;
@@ -24,15 +26,21 @@ html, body {
   color: #fff;
 }
 
-[hidden] { display: none !important; }
+[hidden] {
+  display: none !important;
+}
 
 button, input, select {
   font: inherit;
 }
 
-button { cursor: pointer; }
+button {
+  cursor: pointer;
+}
 
-/* SETUP PAGE */
+/* ==============================
+   SETUP PAGE
+============================== */
 
 .setup {
   min-height: 100svh;
@@ -57,7 +65,7 @@ button { cursor: pointer; }
 }
 
 h1 {
-  font-size: clamp(55px, 12vw, 86px);
+  font-size: clamp(50px, 12vw, 86px);
   font-weight: 900;
   letter-spacing: -.07em;
   margin: 18px 0 12px;
@@ -75,11 +83,12 @@ label {
   color: #aaa;
   font-size: 11px;
   font-weight: bold;
-  letter-spacing: .16em;
+  letter-spacing: .14em;
   margin: 20px 0 8px;
 }
 
-input:not([type="range"]), select {
+input:not([type="range"]):not([type="checkbox"]),
+select {
   width: 100%;
   padding: 14px 12px;
   min-height: 51px;
@@ -123,6 +132,25 @@ input[type="range"] {
   margin-top: 10px;
 }
 
+.motion-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.motion-row input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.motion-row label {
+  margin: 0;
+  cursor: pointer;
+}
+
 .primary {
   width: 100%;
   margin-top: 32px;
@@ -136,7 +164,7 @@ input[type="range"] {
 }
 
 .primary:hover {
-  filter: brightness(1.2);
+  background: #ff4852;
 }
 
 .error {
@@ -154,7 +182,9 @@ input[type="range"] {
   margin-top: 30px;
 }
 
-/* COUNTDOWN PAGE */
+/* ==============================
+   COUNTDOWN SCREEN
+============================== */
 
 .screen {
   position: fixed;
@@ -166,83 +196,181 @@ input[type="range"] {
 }
 
 .clock {
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: max-content;
+  max-width: none;
   text-align: center;
+  transform-origin: center center;
 }
 
 .time {
-  font-family: "Arial Black", Impact, Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+
+  font-family: "Arial Black", Arial, sans-serif;
   font-size: var(--main-size);
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
-  letter-spacing: -.055em;
-  line-height: 1.04;
-  white-space: nowrap;
+  letter-spacing: -.045em;
+  line-height: 1.08;
   color: var(--red);
-
-  text-shadow:
-    0 0 25px rgba(255, 0, 25, .23),
-    0 0 70px rgba(255, 0, 25, .075);
 }
 
 .separator {
   display: inline-block;
-  padding: 0 .03em;
-  font-size: .88em;
+  font-size: .86em;
+  padding: 0 .025em;
 }
 
+.digits {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ==============================
+   INDEPENDENT DIGITS
+============================== */
+
+.digit {
+  position: relative;
+  display: inline-block;
+  width: .65em;
+  height: 1.1em;
+  line-height: 1.1em;
+  text-align: center;
+  flex: none;
+  perspective: 700px;
+  color: var(--red);
+}
+
+.digit-static {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: var(--red);
+  line-height: inherit;
+  text-align: center;
+}
+
+/* Thin mechanical dividing line */
+
+.digit::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 50%;
+  height: 1px;
+  background: rgba(0, 0, 0, .55);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Two animated half-panels */
+
+.flip-top,
+.flip-bottom {
+  position: absolute;
+  inset: 0;
+  display: block;
+  text-align: center;
+  line-height: inherit;
+  color: var(--red);
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.flip-top {
+  clip-path: inset(0 0 50% 0);
+  transform-origin: center center;
+  z-index: 3;
+}
+
+.flip-bottom {
+  clip-path: inset(50% 0 0 0);
+  transform-origin: center center;
+  z-index: 2;
+}
+
+/* Old digit folds away */
+
+.flipping .flip-top {
+  animation: foldAway 360ms ease-in-out both;
+}
+
+/* New digit unfolds */
+
+.flipping .flip-bottom {
+  animation: unfold 360ms ease-in-out both;
+}
+
+@keyframes foldAway {
+  0% {
+    transform: rotateX(0deg);
+    color: var(--red);
+  }
+
+  48% {
+    transform: rotateX(-85deg);
+    color: #861019;
+  }
+
+  49%, 100% {
+    transform: rotateX(-90deg);
+    opacity: 0;
+  }
+}
+
+@keyframes unfold {
+  0%, 49% {
+    transform: rotateX(90deg);
+    opacity: 0;
+  }
+
+  50% {
+    transform: rotateX(85deg);
+    color: #861019;
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotateX(0deg);
+    color: var(--red);
+    opacity: 1;
+  }
+}
+
+/* ==============================
+   FAST CENTISECONDS
+============================== */
+
 .fraction {
-  font-family: "Arial Black", Impact, Arial, sans-serif;
+  font-family: "Arial Black", Arial, sans-serif;
   font-size: var(--fraction-size);
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
   color: var(--red);
-  margin-top: 10px;
-
-  text-shadow:
-    0 0 24px rgba(255, 0, 25, .24);
+  line-height: 1.1;
+  margin-top: 12px;
+  min-width: 2ch;
+  text-align: center;
 }
 
-/* TICK ANIMATION */
-
-/* Dark flip effect — no bright flash */
-
-.tick {
-  animation: darkFlip 180ms ease-out;
-}
-
-@keyframes darkFlip {
-  0% {
-    filter: brightness(0.15);
-    transform: perspective(300px) rotateX(-9deg);
-  }
-
-  100% {
-    filter: brightness(1);
-    transform: perspective(300px) rotateX(0deg);
-  }
-}
-
-/* Accessibility: disable animation when requested */
-@media (prefers-reduced-motion: reduce) {
-  .tick {
-    animation: none !important;
-  }
-}
-
-
-/* BACK BUTTON */
+/* ==============================
+   BACK BUTTON
+============================== */
 
 .back {
   position: fixed;
   top: 20px;
   left: 20px;
+  z-index: 20;
   background: transparent;
   border: none;
   color: #777;
@@ -259,22 +387,34 @@ input[type="range"] {
 }
 
 @media (hover: none) {
-  .back { opacity: .65; }
+  .back {
+    opacity: .65;
+  }
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+  .flipping .flip-top,
+  .flipping .flip-bottom {
+    animation: none !important;
+    display: none !important;
+  }
 }
 
 @media (max-width: 650px) {
-  .panel { padding: 30px 22px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tick { animation: none; }
+  .panel {
+    padding: 30px 22px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<!-- INPUT PAGE -->
+<!-- ==============================
+     USER INPUT
+============================== -->
 
 <main id="setup" class="setup">
   <section class="panel">
@@ -330,27 +470,42 @@ input[type="range"] {
         <option value="America/Denver">
           Denver — Mountain Time
         </option>
-        <option value="Europe/London">London</option>
-        <option value="Europe/Paris">Paris</option>
+        <option value="Europe/London">
+          London
+        </option>
+        <option value="Europe/Paris">
+          Paris
+        </option>
         <option value="Asia/Shanghai">
           Beijing / Shanghai
         </option>
-        <option value="Asia/Tokyo">Tokyo</option>
-        <option value="Asia/Seoul">Seoul</option>
-        <option value="Asia/Singapore">Singapore</option>
-        <option value="Australia/Sydney">Sydney</option>
-        <option value="UTC">UTC</option>
+        <option value="Asia/Tokyo">
+          Tokyo
+        </option>
+        <option value="Asia/Seoul">
+          Seoul
+        </option>
+        <option value="Asia/Singapore">
+          Singapore
+        </option>
+        <option value="Australia/Sydney">
+          Sydney
+        </option>
+        <option value="UTC">
+          UTC
+        </option>
       </select>
 
-      <!-- FONT SIZE CONTROLS -->
+      <!-- SIZE CONTROLS -->
 
       <div class="size-head">
         <label for="mainSize">
           MAIN CLOCK SIZE
         </label>
-        <output class="size-value" id="mainSizeValue">
-          150 px
-        </output>
+        <output
+          class="size-value"
+          id="mainSizeValue"
+        >150 px</output>
       </div>
 
       <input
@@ -366,9 +521,10 @@ input[type="range"] {
         <label for="fractionSize">
           FAST DIGITS SIZE
         </label>
-        <output class="size-value" id="fractionSizeValue">
-          65 px
-        </output>
+        <output
+          class="size-value"
+          id="fractionSizeValue"
+        >65 px</output>
       </div>
 
       <input
@@ -381,14 +537,37 @@ input[type="range"] {
       >
 
       <p class="hint">
-        Sizes automatically adjust to fit smaller screens.
+        Sizes automatically adjust to smaller screens.
+      </p>
+
+      <!-- ANIMATION CONTROL -->
+
+      <div class="motion-row">
+        <input
+          id="enableFlip"
+          type="checkbox"
+          checked
+        >
+
+        <label for="enableFlip">
+          ENABLE MECHANICAL FLIP ANIMATION
+        </label>
+      </div>
+
+      <p class="hint">
+        Turn off to change digits without animation.
       </p>
 
       <button type="submit" class="primary">
         SHOW ME DEADLINE ↗
       </button>
 
-      <p id="error" class="error" role="alert"></p>
+      <p
+        id="error"
+        class="error"
+        role="alert"
+      ></p>
+
     </form>
 
     <div class="footer">
@@ -398,7 +577,9 @@ input[type="range"] {
   </section>
 </main>
 
-<!-- COUNTDOWN PAGE -->
+<!-- ==============================
+     COUNTDOWN
+============================== -->
 
 <section
   id="screen"
@@ -414,7 +595,17 @@ input[type="range"] {
   <div class="clock" role="timer" aria-live="off">
 
     <div class="time">
-      <span id="hh">00</span><span class="separator">:</span><span id="mm">00</span><span class="separator">:</span><span id="ss">00</span>
+
+      <span id="hh" class="digits"></span>
+
+      <span class="separator">:</span>
+
+      <span id="mm" class="digits"></span>
+
+      <span class="separator">:</span>
+
+      <span id="ss" class="digits"></span>
+
     </div>
 
     <div class="fraction" id="cs">
@@ -422,6 +613,7 @@ input[type="range"] {
     </div>
 
   </div>
+
 </section>
 
 <script>
@@ -438,28 +630,38 @@ input[type="range"] {
 
   const mainSlider = $("mainSize");
   const fractionSlider = $("fractionSize");
+  const enableFlip = $("enableFlip");
+
+  const clock = document.querySelector(".clock");
+  const timeElement = document.querySelector(".time");
 
   let deadlineMs = 0;
   let raf = 0;
   let lastSecond = -1;
 
-  const pad = n => String(n).padStart(2, "0");
+  const pad = n =>
+    String(n).padStart(2, "0");
 
-  /* FONT SIZE */
+  /* ============================
+     FONT SIZES
+  ============================ */
 
   function applySizes() {
     const main = Number(mainSlider.value);
     const fraction = Number(fractionSlider.value);
 
     $("mainSizeValue").textContent = main + " px";
-    $("fractionSizeValue").textContent = fraction + " px";
+    $("fractionSizeValue").textContent =
+      fraction + " px";
 
     document.documentElement.style.setProperty(
-      "--main-size", main + "px"
+      "--main-size",
+      main + "px"
     );
 
     document.documentElement.style.setProperty(
-      "--fraction-size", fraction + "px"
+      "--fraction-size",
+      fraction + "px"
     );
 
     fitClock();
@@ -468,117 +670,170 @@ input[type="range"] {
   function fitClock() {
     if (screen.hidden) return;
 
-    const clock = document.querySelector(".clock");
-    const time = document.querySelector(".time");
-
     clock.style.transform = "scale(1)";
 
-    const width = window.innerWidth - 24;
-    const height = window.innerHeight - 24;
+    const maxWidth = window.innerWidth - 24;
+    const maxHeight = window.innerHeight - 24;
 
-    const neededWidth = time.scrollWidth;
-    const neededHeight = clock.scrollHeight;
+    const actualWidth = timeElement.scrollWidth;
+    const actualHeight = clock.scrollHeight;
 
     const scale = Math.min(
       1,
-      width / Math.max(1, neededWidth),
-      height / Math.max(1, neededHeight)
+      maxWidth / Math.max(1, actualWidth),
+      maxHeight / Math.max(1, actualHeight)
     );
 
     clock.style.transform = `scale(${scale})`;
   }
 
   mainSlider.addEventListener("input", applySizes);
-  fractionSlider.addEventListener("input", applySizes);
+  fractionSlider.addEventListener(
+    "input",
+    applySizes
+  );
 
   window.addEventListener("resize", fitClock);
 
-  /* TIME ZONE SUPPORT */
+  /* ============================
+     TIME ZONES
+  ============================ */
 
   function getParts(date, timeZone) {
-    const formatter = new Intl.DateTimeFormat("en-GB", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hourCycle: "h23"
-    });
+    const formatter = new Intl.DateTimeFormat(
+      "en-GB",
+      {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23"
+      }
+    );
 
     const values = formatter.formatToParts(date);
 
     const obj = Object.fromEntries(
       values
         .filter(p => p.type !== "literal")
-        .map(p => [p.type, Number(p.value)])
+        .map(p => [
+          p.type,
+          Number(p.value)
+        ])
     );
 
     return [
-      obj.year, obj.month, obj.day,
-      obj.hour, obj.minute, obj.second
+      obj.year,
+      obj.month,
+      obj.day,
+      obj.hour,
+      obj.minute,
+      obj.second
     ];
   }
 
   function wallToTimestamp(value, timeZone) {
     const match =
-      /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)(?::(\d\d))?$/
+      /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/
         .exec(value);
 
     if (!match) {
-      throw new Error("Please enter a valid date and time.");
+      throw new Error(
+        "Please enter a valid date and time."
+      );
     }
 
-    const wanted = match.slice(1).map(
-      value => value === undefined ? 0 : Number(value)
+    const wanted = [
+      Number(match[1]),
+      Number(match[2]),
+      Number(match[3]),
+      Number(match[4]),
+      Number(match[5]),
+      Number(match[6] ?? 0)
+    ];
+
+    const [year, month, day, hour, minute, second] =
+      wanted;
+
+    const naive = Date.UTC(
+      year,
+      month - 1,
+      day,
+      hour,
+      minute,
+      second
     );
 
-    const [y, mo, d, h, mi, s] = wanted;
+    if (!Number.isFinite(naive)) {
+      throw new Error("Invalid date or time.");
+    }
+
+    // Check for impossible dates,
+    // such as February 30.
+
+    const utcDate = new Date(naive);
 
     if (
-      y < 100 || mo < 1 || mo > 12 ||
-      d < 1 || d > 31 ||
-      h > 23 || mi > 59 || s > 59
+      utcDate.getUTCFullYear() !== year ||
+      utcDate.getUTCMonth() + 1 !== month ||
+      utcDate.getUTCDate() !== day ||
+      utcDate.getUTCHours() !== hour ||
+      utcDate.getUTCMinutes() !== minute ||
+      utcDate.getUTCSeconds() !== second
     ) {
       throw new Error("Invalid date or time.");
     }
 
-    const naive = Date.UTC(y, mo - 1, d, h, mi, s);
-    let result = naive;
+    // Find the matching moment in the
+    // selected time zone. Checking multiple
+    // offsets also handles DST transitions.
 
-    for (let i = 0; i < 5; i++) {
-      const p = getParts(new Date(result), timeZone);
+    const candidates = [];
 
-      const wall = Date.UTC(
-        p[0], p[1] - 1, p[2],
-        p[3], p[4], p[5]
+    for (let offset = -14; offset <= 14; offset++) {
+      const candidate =
+        naive - offset * 3600000;
+
+      const actual = getParts(
+        new Date(candidate),
+        timeZone
       );
 
-      const shift = naive - wall;
-      result += shift;
-
-      if (!shift) break;
+      if (
+        actual.every(
+          (v, i) => v === wanted[i]
+        )
+      ) {
+        candidates.push(candidate);
+      }
     }
 
-    const actual = getParts(new Date(result), timeZone);
-
-    if (actual.some((v, i) => v !== wanted[i])) {
+    if (candidates.length === 0) {
       throw new Error(
-        "This time is invalid in the selected time zone."
+        "This time does not exist in the selected time zone."
       );
     }
 
-    return result;
+    // When clocks go backward, the same
+    // local time may happen twice.
+    // Choose the first occurrence.
+
+    return Math.min(...candidates);
   }
 
-  /* LOCAL STORAGE */
+  /* ============================
+     SETTINGS STORAGE
+  ============================ */
 
   let saved = {};
 
   try {
     saved = JSON.parse(
-      localStorage.getItem("deadline-pref") || "{}"
+      localStorage.getItem("deadline-pref") ||
+      "{}"
     );
   } catch {}
 
@@ -599,7 +854,9 @@ input[type="range"] {
     fractionSlider.value = saved.fractionSize;
   }
 
-  applySizes();
+  if (saved.enableFlip != null) {
+    enableFlip.checked = saved.enableFlip;
+  }
 
   if (saved.goal) {
     $("goal").value = saved.goal;
@@ -618,7 +875,125 @@ input[type="range"] {
       `T${pad(p[3])}:${pad(p[4])}:00`;
   }
 
-  /* LIVE COUNTDOWN */
+  applySizes();
+
+  /* ============================
+     INDEPENDENT FLIP DIGITS
+  ============================ */
+
+  function createDigit(char) {
+    const digit = document.createElement("span");
+    digit.className = "digit";
+    digit.dataset.value = char;
+
+    const staticNumber =
+      document.createElement("span");
+
+    staticNumber.className = "digit-static";
+    staticNumber.textContent = char;
+
+    digit.appendChild(staticNumber);
+
+    return digit;
+  }
+
+  function clearFlip(digit) {
+    digit.classList.remove("flipping");
+
+    digit.querySelectorAll(
+      ".flip-top, .flip-bottom"
+    ).forEach(el => el.remove());
+  }
+
+  function animateDigit(digit, oldValue, newValue) {
+    clearFlip(digit);
+
+    const staticNumber =
+      digit.querySelector(".digit-static");
+
+    // Update the underlying digit immediately.
+    staticNumber.textContent = newValue;
+
+    if (
+      !enableFlip.checked ||
+      window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches
+    ) {
+      return;
+    }
+
+    const top = document.createElement("span");
+    top.className = "flip-top";
+    top.textContent = oldValue;
+
+    const bottom = document.createElement("span");
+    bottom.className = "flip-bottom";
+    bottom.textContent = newValue;
+
+    digit.appendChild(top);
+    digit.appendChild(bottom);
+
+    digit.classList.add("flipping");
+
+    bottom.addEventListener(
+      "animationend",
+      () => {
+        if (bottom.isConnected) {
+          clearFlip(digit);
+        }
+      },
+      { once: true }
+    );
+  }
+
+  function updateDigits(elementId, value) {
+    const container = $(elementId);
+    const text = String(value);
+
+    let digits = Array.from(
+      container.querySelectorAll(":scope > .digit")
+    );
+
+    // Rebuild when the number of digits changes,
+    // such as hours going from 100 to 99.
+
+    if (digits.length !== text.length) {
+      container.replaceChildren();
+
+      for (const char of text) {
+        container.appendChild(
+          createDigit(char)
+        );
+      }
+
+      return;
+    }
+
+    for (let i = 0; i < text.length; i++) {
+      const digit = digits[i];
+      const newValue = text[i];
+      const oldValue = digit.dataset.value;
+
+      // Unchanged digits stay completely still.
+
+      if (oldValue === newValue) {
+        continue;
+      }
+
+      digit.dataset.value = newValue;
+
+      animateDigit(
+        digit,
+        oldValue,
+        newValue
+      );
+    }
+  }
+
+  /* ============================
+     LIVE COUNTDOWN
+  ============================ */
 
   function draw() {
     const remaining = Math.max(
@@ -626,32 +1001,38 @@ input[type="range"] {
       deadlineMs - Date.now()
     );
 
-    const totalSeconds = Math.floor(remaining / 1000);
+    const totalSeconds = Math.floor(
+      remaining / 1000
+    );
 
-    // Hours include all remaining days.
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    // All remaining hours are accumulated,
+    // even when more than 24 hours remain.
+
+    const hours = Math.floor(
+      totalSeconds / 3600
+    );
+
+    const minutes = Math.floor(
+      (totalSeconds % 3600) / 60
+    );
+
     const seconds = totalSeconds % 60;
 
-    // Hundredths of a second: 00 to 99.
+    // 100 subdivisions of one second.
+
     const centiseconds = remaining > 0
       ? Math.floor((remaining % 1000) / 10)
       : 0;
 
-    $("hh").textContent = pad(hours);
-    $("mm").textContent = pad(minutes);
-    $("ss").textContent = pad(seconds);
+    updateDigits("hh", pad(hours));
+    updateDigits("mm", pad(minutes));
+    updateDigits("ss", pad(seconds));
+
+    // Fast digits have no flip animation.
     $("cs").textContent = pad(centiseconds);
 
     if (totalSeconds !== lastSecond) {
       lastSecond = totalSeconds;
-
-      const secondsElement = $("ss");
-
-      secondsElement.classList.remove("tick");
-      void secondsElement.offsetWidth;
-      secondsElement.classList.add("tick");
-
       fitClock();
     }
 
@@ -660,58 +1041,77 @@ input[type="range"] {
     }
   }
 
-  /* START DEADLINE */
+  /* ============================
+     SHOW ME DEADLINE
+  ============================ */
 
-  $("form").addEventListener("submit", event => {
-    event.preventDefault();
+  $("form").addEventListener(
+    "submit",
+    event => {
+      event.preventDefault();
 
-    error.textContent = "";
-
-    try {
-      deadlineMs = wallToTimestamp(
-        target.value,
-        zone.value
-      );
-
-      if (deadlineMs <= Date.now()) {
-        throw new Error(
-          "Your deadline must be in the future."
-        );
-      }
+      error.textContent = "";
 
       try {
-        localStorage.setItem(
-          "deadline-pref",
-          JSON.stringify({
-            target: target.value,
-            zone: zone.value,
-            goal: $("goal").value,
-            mainSize: Number(mainSlider.value),
-            fractionSize: Number(fractionSlider.value)
-          })
+        deadlineMs = wallToTimestamp(
+          target.value,
+          zone.value
         );
-      } catch {}
 
-      setup.hidden = true;
-      screen.hidden = false;
+        if (deadlineMs <= Date.now()) {
+          throw new Error(
+            "Your deadline must be in the future."
+          );
+        }
 
-      lastSecond = -1;
+        try {
+          localStorage.setItem(
+            "deadline-pref",
+            JSON.stringify({
+              target: target.value,
+              zone: zone.value,
+              goal: $("goal").value,
+              mainSize: Number(
+                mainSlider.value
+              ),
+              fractionSize: Number(
+                fractionSlider.value
+              ),
+              enableFlip: enableFlip.checked
+            })
+          );
+        } catch {}
 
-      document.title =
-        ($("goal").value.trim() || "DEADLINE") +
-        " — Time is running out";
+        setup.hidden = true;
+        screen.hidden = false;
 
-      cancelAnimationFrame(raf);
-      draw();
-      fitClock();
+        // Clear old digits before starting.
 
-    } catch (e) {
-      error.textContent =
-        e.message || "Unable to use this deadline.";
+        $("hh").replaceChildren();
+        $("mm").replaceChildren();
+        $("ss").replaceChildren();
+
+        lastSecond = -1;
+
+        document.title =
+          ($("goal").value.trim() || "DEADLINE") +
+          " — Time is running out";
+
+        cancelAnimationFrame(raf);
+        draw();
+        fitClock();
+
+      } catch (e) {
+        error.textContent =
+          e.message ||
+          "Unable to use this deadline.";
+      }
     }
-  });
+  );
 
-  /* RETURN TO SETTINGS */
+  /* ============================
+     RETURN TO SETTINGS
+  ============================ */
 
   function closeDeadline() {
     cancelAnimationFrame(raf);
@@ -719,23 +1119,39 @@ input[type="range"] {
     screen.hidden = true;
     setup.hidden = false;
 
-    document.title = "DEADLINE — Time is running out";
+    document.title =
+      "DEADLINE — Time is running out";
   }
 
-  $("back").addEventListener("click", closeDeadline);
+  $("back").addEventListener(
+    "click",
+    closeDeadline
+  );
 
-  window.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !screen.hidden) {
-      closeDeadline();
+  window.addEventListener(
+    "keydown",
+    event => {
+      if (
+        event.key === "Escape" &&
+        !screen.hidden
+      ) {
+        closeDeadline();
+      }
     }
-  });
+  );
 
-  document.addEventListener("visibilitychange", () => {
-    if (!screen.hidden && !document.hidden) {
-      cancelAnimationFrame(raf);
-      draw();
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (
+        !screen.hidden &&
+        !document.hidden
+      ) {
+        cancelAnimationFrame(raf);
+        draw();
+      }
     }
-  });
+  );
 
 })();
 </script>
