@@ -1,0 +1,734 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEADLINE — Time is running out</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  font-family: Arial, sans-serif;
+  --red: #ff202c;
+  --main-size: 150px;
+  --fraction-size: 65px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: #000;
+  color: #fff;
+}
+
+[hidden] { display: none !important; }
+
+button, input, select {
+  font: inherit;
+}
+
+button { cursor: pointer; }
+
+/* SETUP PAGE */
+
+.setup {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #050505;
+}
+
+.panel {
+  width: min(100%, 500px);
+  padding: 40px;
+  background: #090909;
+  border: 1px solid #262626;
+}
+
+.kicker {
+  color: var(--red);
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: .3em;
+}
+
+h1 {
+  font-size: clamp(55px, 12vw, 86px);
+  font-weight: 900;
+  letter-spacing: -.07em;
+  margin: 18px 0 12px;
+}
+
+.desc {
+  color: #888;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 34px;
+}
+
+label {
+  display: block;
+  color: #aaa;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: .16em;
+  margin: 20px 0 8px;
+}
+
+input:not([type="range"]), select {
+  width: 100%;
+  padding: 14px 12px;
+  min-height: 51px;
+  color: #fff;
+  background: #121212;
+  border: 1px solid #333;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--red);
+}
+
+.size-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 22px;
+}
+
+.size-head label {
+  margin: 0;
+}
+
+.size-value {
+  color: #ff5960;
+  font-size: 12px;
+}
+
+input[type="range"] {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.hint {
+  color: #666;
+  font-size: 11px;
+  margin-top: 10px;
+}
+
+.primary {
+  width: 100%;
+  margin-top: 32px;
+  padding: 20px 8px;
+  background: var(--red);
+  color: #000;
+  border: none;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .15em;
+}
+
+.primary:hover {
+  filter: brightness(1.2);
+}
+
+.error {
+  color: #ff5960;
+  font-size: 12px;
+  min-height: 20px;
+  margin-top: 12px;
+}
+
+.footer {
+  text-align: center;
+  color: #555;
+  font-size: 10px;
+  letter-spacing: .1em;
+  margin-top: 30px;
+}
+
+/* COUNTDOWN PAGE */
+
+.screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.clock {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.time {
+  font-family: "Arial Black", Impact, Arial, sans-serif;
+  font-size: var(--main-size);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -.055em;
+  line-height: 1.04;
+  white-space: nowrap;
+  color: var(--red);
+
+  text-shadow:
+    0 0 25px rgba(255, 0, 25, .23),
+    0 0 70px rgba(255, 0, 25, .075);
+}
+
+.separator {
+  display: inline-block;
+  padding: 0 .03em;
+  font-size: .88em;
+}
+
+.fraction {
+  font-family: "Arial Black", Impact, Arial, sans-serif;
+  font-size: var(--fraction-size);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  color: var(--red);
+  margin-top: 10px;
+
+  text-shadow:
+    0 0 24px rgba(255, 0, 25, .24);
+}
+
+/* TICK ANIMATION */
+
+.tick {
+  animation: shock 130ms ease-out;
+}
+
+@keyframes shock {
+  0% {
+    filter: brightness(2);
+    transform: perspective(300px) rotateX(-9deg);
+  }
+
+  100% {
+    filter: brightness(1);
+    transform: perspective(300px) rotateX(0deg);
+  }
+}
+
+/* BACK BUTTON */
+
+.back {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: transparent;
+  border: none;
+  color: #777;
+  font-size: 11px;
+  letter-spacing: .12em;
+  padding: 12px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.screen:hover .back,
+.back:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .back { opacity: .65; }
+}
+
+@media (max-width: 650px) {
+  .panel { padding: 30px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick { animation: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- INPUT PAGE -->
+
+<main id="setup" class="setup">
+  <section class="panel">
+
+    <div class="kicker">
+      YOU ARE RUNNING OUT OF TIME
+    </div>
+
+    <h1>DEADLINE.</h1>
+
+    <p class="desc">
+      Give it a date. Watch every second disappear.
+    </p>
+
+    <form id="form">
+
+      <label for="goal">
+        WHAT IS YOUR DEADLINE? (OPTIONAL)
+      </label>
+
+      <input
+        id="goal"
+        type="text"
+        maxlength="100"
+        placeholder="The thing I must finish"
+      >
+
+      <label for="target">
+        TARGET DATE & TIME
+      </label>
+
+      <input
+        id="target"
+        type="datetime-local"
+        step="1"
+        required
+      >
+
+      <label for="zone">
+        TIME ZONE
+      </label>
+
+      <select id="zone">
+        <option value="America/New_York">
+          New York — Eastern Time (default)
+        </option>
+        <option value="America/Los_Angeles">
+          Los Angeles — Pacific Time
+        </option>
+        <option value="America/Chicago">
+          Chicago — Central Time
+        </option>
+        <option value="America/Denver">
+          Denver — Mountain Time
+        </option>
+        <option value="Europe/London">London</option>
+        <option value="Europe/Paris">Paris</option>
+        <option value="Asia/Shanghai">
+          Beijing / Shanghai
+        </option>
+        <option value="Asia/Tokyo">Tokyo</option>
+        <option value="Asia/Seoul">Seoul</option>
+        <option value="Asia/Singapore">Singapore</option>
+        <option value="Australia/Sydney">Sydney</option>
+        <option value="UTC">UTC</option>
+      </select>
+
+      <!-- FONT SIZE CONTROLS -->
+
+      <div class="size-head">
+        <label for="mainSize">
+          MAIN CLOCK SIZE
+        </label>
+        <output class="size-value" id="mainSizeValue">
+          150 px
+        </output>
+      </div>
+
+      <input
+        id="mainSize"
+        type="range"
+        min="48"
+        max="300"
+        step="2"
+        value="150"
+      >
+
+      <div class="size-head">
+        <label for="fractionSize">
+          FAST DIGITS SIZE
+        </label>
+        <output class="size-value" id="fractionSizeValue">
+          65 px
+        </output>
+      </div>
+
+      <input
+        id="fractionSize"
+        type="range"
+        min="18"
+        max="180"
+        step="1"
+        value="65"
+      >
+
+      <p class="hint">
+        Sizes automatically adjust to fit smaller screens.
+      </p>
+
+      <button type="submit" class="primary">
+        SHOW ME DEADLINE ↗
+      </button>
+
+      <p id="error" class="error" role="alert"></p>
+    </form>
+
+    <div class="footer">
+      NO PAUSE. NO SECOND CHANCE.
+    </div>
+
+  </section>
+</main>
+
+<!-- COUNTDOWN PAGE -->
+
+<section
+  id="screen"
+  class="screen"
+  hidden
+  aria-label="Live deadline countdown"
+>
+
+  <button id="back" class="back">
+    ← EDIT DEADLINE
+  </button>
+
+  <div class="clock" role="timer" aria-live="off">
+
+    <div class="time">
+      <span id="hh">00</span><span class="separator">:</span><span id="mm">00</span><span class="separator">:</span><span id="ss">00</span>
+    </div>
+
+    <div class="fraction" id="cs">
+      00
+    </div>
+
+  </div>
+</section>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  const setup = $("setup");
+  const screen = $("screen");
+  const target = $("target");
+  const zone = $("zone");
+  const error = $("error");
+
+  const mainSlider = $("mainSize");
+  const fractionSlider = $("fractionSize");
+
+  let deadlineMs = 0;
+  let raf = 0;
+  let lastSecond = -1;
+
+  const pad = n => String(n).padStart(2, "0");
+
+  /* FONT SIZE */
+
+  function applySizes() {
+    const main = Number(mainSlider.value);
+    const fraction = Number(fractionSlider.value);
+
+    $("mainSizeValue").textContent = main + " px";
+    $("fractionSizeValue").textContent = fraction + " px";
+
+    document.documentElement.style.setProperty(
+      "--main-size", main + "px"
+    );
+
+    document.documentElement.style.setProperty(
+      "--fraction-size", fraction + "px"
+    );
+
+    fitClock();
+  }
+
+  function fitClock() {
+    if (screen.hidden) return;
+
+    const clock = document.querySelector(".clock");
+    const time = document.querySelector(".time");
+
+    clock.style.transform = "scale(1)";
+
+    const width = window.innerWidth - 24;
+    const height = window.innerHeight - 24;
+
+    const neededWidth = time.scrollWidth;
+    const neededHeight = clock.scrollHeight;
+
+    const scale = Math.min(
+      1,
+      width / Math.max(1, neededWidth),
+      height / Math.max(1, neededHeight)
+    );
+
+    clock.style.transform = `scale(${scale})`;
+  }
+
+  mainSlider.addEventListener("input", applySizes);
+  fractionSlider.addEventListener("input", applySizes);
+
+  window.addEventListener("resize", fitClock);
+
+  /* TIME ZONE SUPPORT */
+
+  function getParts(date, timeZone) {
+    const formatter = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23"
+    });
+
+    const values = formatter.formatToParts(date);
+
+    const obj = Object.fromEntries(
+      values
+        .filter(p => p.type !== "literal")
+        .map(p => [p.type, Number(p.value)])
+    );
+
+    return [
+      obj.year, obj.month, obj.day,
+      obj.hour, obj.minute, obj.second
+    ];
+  }
+
+  function wallToTimestamp(value, timeZone) {
+    const match =
+      /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)(?::(\d\d))?$/
+        .exec(value);
+
+    if (!match) {
+      throw new Error("Please enter a valid date and time.");
+    }
+
+    const wanted = match.slice(1).map(Number);
+
+    while (wanted.length < 6) wanted.push(0);
+
+    const [y, mo, d, h, mi, s] = wanted;
+
+    if (
+      y < 100 || mo < 1 || mo > 12 ||
+      d < 1 || d > 31 ||
+      h > 23 || mi > 59 || s > 59
+    ) {
+      throw new Error("Invalid date or time.");
+    }
+
+    const naive = Date.UTC(y, mo - 1, d, h, mi, s);
+    let result = naive;
+
+    for (let i = 0; i < 5; i++) {
+      const p = getParts(new Date(result), timeZone);
+
+      const wall = Date.UTC(
+        p[0], p[1] - 1, p[2],
+        p[3], p[4], p[5]
+      );
+
+      const shift = naive - wall;
+      result += shift;
+
+      if (!shift) break;
+    }
+
+    const actual = getParts(new Date(result), timeZone);
+
+    if (actual.some((v, i) => v !== wanted[i])) {
+      throw new Error(
+        "This time is invalid in the selected time zone."
+      );
+    }
+
+    return result;
+  }
+
+  /* LOCAL STORAGE */
+
+  let saved = {};
+
+  try {
+    saved = JSON.parse(
+      localStorage.getItem("deadline-pref") || "{}"
+    );
+  } catch {}
+
+  if (
+    saved.zone &&
+    Array.from(zone.options).some(
+      option => option.value === saved.zone
+    )
+  ) {
+    zone.value = saved.zone;
+  }
+
+  if (saved.mainSize != null) {
+    mainSlider.value = saved.mainSize;
+  }
+
+  if (saved.fractionSize != null) {
+    fractionSlider.value = saved.fractionSize;
+  }
+
+  applySizes();
+
+  if (saved.goal) {
+    $("goal").value = saved.goal;
+  }
+
+  if (saved.target) {
+    target.value = saved.target;
+  } else {
+    const p = getParts(
+      new Date(Date.now() + 86400000),
+      zone.value
+    );
+
+    target.value =
+      `${p[0]}-${pad(p[1])}-${pad(p[2])}` +
+      `T${pad(p[3])}:${pad(p[4])}:00`;
+  }
+
+  /* LIVE COUNTDOWN */
+
+  function draw() {
+    const remaining = Math.max(
+      0,
+      deadlineMs - Date.now()
+    );
+
+    const totalSeconds = Math.floor(remaining / 1000);
+
+    // Hours include all remaining days.
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    // Hundredths of a second: 00 to 99.
+    const centiseconds = remaining > 0
+      ? Math.floor((remaining % 1000) / 10)
+      : 0;
+
+    $("hh").textContent = pad(hours);
+    $("mm").textContent = pad(minutes);
+    $("ss").textContent = pad(seconds);
+    $("cs").textContent = pad(centiseconds);
+
+    if (totalSeconds !== lastSecond) {
+      lastSecond = totalSeconds;
+
+      const secondsElement = $("ss");
+
+      secondsElement.classList.remove("tick");
+      void secondsElement.offsetWidth;
+      secondsElement.classList.add("tick");
+
+      fitClock();
+    }
+
+    if (remaining > 0) {
+      raf = requestAnimationFrame(draw);
+    }
+  }
+
+  /* START DEADLINE */
+
+  $("form").addEventListener("submit", event => {
+    event.preventDefault();
+
+    error.textContent = "";
+
+    try {
+      deadlineMs = wallToTimestamp(
+        target.value,
+        zone.value
+      );
+
+      if (deadlineMs <= Date.now()) {
+        throw new Error(
+          "Your deadline must be in the future."
+        );
+      }
+
+      try {
+        localStorage.setItem(
+          "deadline-pref",
+          JSON.stringify({
+            target: target.value,
+            zone: zone.value,
+            goal: $("goal").value,
+            mainSize: Number(mainSlider.value),
+            fractionSize: Number(fractionSlider.value)
+          })
+        );
+      } catch {}
+
+      setup.hidden = true;
+      screen.hidden = false;
+
+      lastSecond = -1;
+
+      document.title =
+        ($("goal").value.trim() || "DEADLINE") +
+        " — Time is running out";
+
+      cancelAnimationFrame(raf);
+      draw();
+      fitClock();
+
+    } catch (e) {
+      error.textContent =
+        e.message || "Unable to use this deadline.";
+    }
+  });
+
+  /* RETURN TO SETTINGS */
+
+  function closeDeadline() {
+    cancelAnimationFrame(raf);
+
+    screen.hidden = true;
+    setup.hidden = false;
+
+    document.title = "DEADLINE — Time is running out";
+  }
+
+  $("back").addEventListener("click", closeDeadline);
+
+  window.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !screen.hidden) {
+      closeDeadline();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!screen.hidden && !document.hidden) {
+      cancelAnimationFrame(raf);
+      draw();
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>
