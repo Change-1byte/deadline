@@ -520,9 +520,9 @@ input[type="range"] {
       throw new Error("Please enter a valid date and time.");
     }
 
-    const wanted = match.slice(1).map(Number);
-
-    while (wanted.length < 6) wanted.push(0);
+    const wanted = match.slice(1).map(
+      value => value === undefined ? 0 : Number(value)
+    );
 
     const [y, mo, d, h, mi, s] = wanted;
 
